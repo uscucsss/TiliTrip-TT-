@@ -1,7 +1,14 @@
 import tkinter as tk
+import os
+
+
+CURSORS_DIR = "assets/cursors"
 
 # 1. Глобальные настройки (Центр управления дизайном)
 THEME = {
+    "default_cursor": "arrow",      # Стандартная стрелка
+    "button_cursor": "hand2",       # Рука (встроенная в систему)
+    "custom_file": "my_cursor.cur"  # Имя вашего файла .cur
     "bg": "#1e1e1e",
     "fg": "#ffffff",
     "accent": "#007acc",
@@ -46,3 +53,35 @@ def style_entry(entry):
         relief="flat",
         font=THEME["font_main"]
     )
+def set_custom_cursor(widget, cursor_type="default"):
+    """
+    Меняет курсор для конкретного виджета.
+    cursor_type может быть: 'default', 'action' (рука) или 'file' (из файла)
+    """
+    try:
+        if cursor_type == "action":
+            widget.configure(cursor=THEME["button_cursor"])
+            
+        elif cursor_type == "file":
+            # Путь к файлу .cur (обязательно укажите @ перед путем в Windows)
+            path = os.path.join(CURSORS_DIR, THEME["custom_file"])
+            if os.path.exists(path):
+                widget.configure(cursor=f"@{os.path.abspath(path)}")
+            else:
+                print(f"Файл {path} не найден, оставлен стандартный курсор")
+                
+        else:
+            widget.configure(cursor=THEME["default_cursor"])
+            
+    except Exception as e:
+        print(f"Ошибка при смене курсора: {e}")
+
+# Пример интеграции в существующие функции стилизации:
+def style_button(button):
+    button.configure(
+        bg="#007acc",
+        fg="#ffffff",
+        relief="flat"
+    )
+    # Автоматически ставим курсор "рука" при наведении на кнопку
+    set_custom_cursor(button, cursor_type="action")
