@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import sqlite3
 import os
-import pygame #pip install
+import pygame #pip install pygame-ce
 
 class TiliTripApp:
     def __init__(self, root):
@@ -27,7 +27,7 @@ class TiliTripApp:
         except Exception as e:
             print(f"Ошибка воспроизведения звука {filename}: {e}")
 
-        def on_closing(self):
+    def on_closing(self):
             #Логика при закрытия программы
             self.play_sound("shutdown.mp3")
             self.root.after(1000,self.root.destroy)
