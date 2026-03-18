@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import sqlite3
 import os
+import pygame #pip install
 
 class TiliTripApp:
     def __init__(self, root):
@@ -9,9 +10,29 @@ class TiliTripApp:
         self.root.title("TiliTrip - Планировщик путешествий")
         self.root.geometry("600x500")
 
+        pygame.mixer.init()
+        self.play_sound("start.mp3")
+
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        
         self.init_db()
         self.create_widgets()
+        self.update_trip_list()
+    def play_sound(self, filename):
+        #Проигрывает звук
+        try:
+            if os.path.exists(filename):
+                pygame.mixer.music.load(filename)
+                pygame.mixer.music.play()
+        except Exception as e:
+            print(f"Ошибка воспроизведения звука {filename}: {e}")
 
+        def on_closing(self):
+            #Логика при закрытия программы
+            self.play_sound("shutdown.mp3")
+            self.root.after(1000,self.root.destroy)
+
+    
     def init_db(self):
         self.conn = sqlite3.connect('tilitrip.db')
         self.cursor = self.conn.cursor()
@@ -69,6 +90,9 @@ class TiliTripApp:
         if name and date:
             self.cursor.execute("INSERT INTO trips (name, start_date) VALUES (?, ?)", (name, date))
             self.conn.commit()
+
+            self.play_sound("success.mp3")
+            
             self.update_trip_list()
             self.entry_trip_name.delete(0, tk.END)
             self.entry_trip_date.delete(0, tk.END)
