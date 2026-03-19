@@ -156,8 +156,8 @@ class TiliTripApp(ctk.CTk):
 
         try:
             city_clean = city.strip()
-            # Реалистичный заголовок, чтобы избежать блокировок
-            headers = {'User-Agent': 'TiliTripApp_EducationalProject_v3.0'}
+            # Усиленный User-Agent для обхода блокировок
+            headers = {'User-Agent': 'TiliTripApp_Final_Stable_v3.2'}
             url = f"https://nominatim.openstreetmap.org{urllib.parse.quote(city_clean)}&format=json&limit=1"
             response = requests.get(url, headers=headers, timeout=10)
             data = response.json()
@@ -166,7 +166,7 @@ class TiliTripApp(ctk.CTk):
                 if loc_id:
                     self.cursor.execute("UPDATE locations SET lat=?, lon=? WHERE id=?", (lat, lon, loc_id))
                     self.conn.commit()
-                time.sleep(1.2) # Лимит API
+                time.sleep(1.2) # Обязательная пауза Nominatim
                 return lat, lon
         except Exception as e:
             print(f"Ошибка гео: {e}")
@@ -176,7 +176,7 @@ class TiliTripApp(ctk.CTk):
         sel = self.tree.selection()
         if not sel: return messagebox.showwarning("Ошибка", "Выберите поездку")
         trip_data = self.tree.item(sel)['values']
-        self.result_label.configure(text="⏳ Идет поиск городов и расчет...")
+        self.result_label.configure(text="⏳ Ищу города и считаю путь...")
         threading.Thread(target=self._route_thread, args=(trip_data,), daemon=True).start()
 
     def _route_thread(self, trip_data):
@@ -187,19 +187,19 @@ class TiliTripApp(ctk.CTk):
             
             full_route_pts = []
             
-            # Точка 1: Город вылета
+            # 1. Город вылета
             l_start, lon_start = self.get_coords(dep_city)
             if l_start: full_route_pts.append(f"{l_start},{lon_start}")
             else: return self.after(0, lambda: messagebox.showerror("Ошибка", f"Не найден город вылета: {dep_city}"))
 
-            # Остальные точки из плана
+            # 2. Пункты плана
             for l_id, l_city in locs:
                 lt, ln = self.get_coords(l_city, l_id)
                 if lt: full_route_pts.append(f"{lt},{ln}")
-                else: return self.after(0, lambda c=l_city: messagebox.showerror("Ошибка", f"Не найден город в плане: {c}"))
+                else: return self.after(0, lambda c=l_city: messagebox.showerror("Ошибка", f"Не найден пункт: {c}"))
 
             if len(full_route_pts) < 2:
-                return self.after(0, lambda: self.result_label.configure(text="Добавьте хотя бы 1 город в план"))
+                return self.after(0, lambda: self.result_label.configure(text="Добавьте города в план"))
 
             d_m, t_ms = 0, 0
             api_key = "e0db81e2-ded2-4ba9-9f0f-dc8eb9fac721"
@@ -217,6 +217,7 @@ class TiliTripApp(ctk.CTk):
             self.after(0, lambda: self.play_sound("success.mp3"))
         except Exception as e:
             self.after(0, lambda ex=e: messagebox.showerror("Ошибка", f"Ошибка расчета: {ex}"))
+            self.after(0, lambda: self.result_label.configure(text=""))
 
     def open_map_action(self):
         sel = self.tree.selection()
