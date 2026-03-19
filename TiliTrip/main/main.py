@@ -134,11 +134,13 @@ class TiliTripApp(ctk.CTk):
 
     # --- ИСПРАВЛЕННАЯ ЛОГИКА ГЕО И КАРТ ---
 
-    def get_coords(self, city, loc_id=None):
+     def get_coords(self, city, loc_id=None):
+        """Получает координаты из БД или через Nominatim API с усиленным User-Agent."""
         if loc_id:
             self.cursor.execute("SELECT lat, lon FROM locations WHERE id=?", (loc_id,))
             res = self.cursor.fetchone()
-            if res and res[0] and res[1]: return res[0], res[1]
+            if res and res[0] and res[1]: 
+                return res[0], res[1]
         try:
             clean_city = city.strip()
             url = f"https://nominatim.openstreetmap.org{urllib.parse.quote(clean_city)}&format=json&limit=1"
