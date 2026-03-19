@@ -37,7 +37,7 @@ class TiliTripApp:
         self.conn = sqlite3.connect('tilitrip.db')
         self.cursor = self.conn.cursor()
 
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS trips (id INTEGER PRIMARY KEY, name TEXT, start_date TEXT)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS trips (id INTEGER PRIMARY KEY, name TEXT, start_date TEXT, departure_city TEXT)''')
 
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS locations (id INTEGER PRIMARY KEY, trip_id INTEGER, city TEXT, day_number INTEGER, FOREIGN KEY(trip_id) REFERENCES trips(id))''')
         self.conn.commit()
@@ -49,6 +49,10 @@ class TiliTripApp:
         ttk.Label(frame_add, text="Название:").grid(column=0, row=0, padx=5, pady=5)
         self.entry_trip_name = ttk.Entry(frame_add)
         self.entry_trip_name.grid(row=0, column=1, padx=5, pady=5)
+        
+        ttk.Label(frame_add, text='Откуда:').grid(column=0, row=0, padx=5, pady=5)
+        self.entry_departure_city = ttk.Entry(frame_add)
+        self.entry_departure_city.grid(row=0, column=1, padx=5, pady=5)
 
         ttk.Label(frame_add, text="Дата (ГГГГ-ММ-ДД):").grid(row=0, column=2, padx=5, pady=5)
         self.entry_trip_date = ttk.Entry(frame_add)
@@ -87,6 +91,7 @@ class TiliTripApp:
     def add_trip(self):
         name = self.entry_trip_name.get()
         date = self.entry_trip_date.get()
+        departure = self.entry_departure.get()
         if name and date:
             self.cursor.execute("INSERT INTO trips (name, start_date) VALUES (?, ?)", (name, date))
             self.conn.commit()
@@ -94,6 +99,7 @@ class TiliTripApp:
             self.play_sound("success.mp3")
             
             self.update_trip_list()
+            self.entry_departure.delete(0,tk.END)
             self.entry_trip_name.delete(0, tk.END)
             self.entry_trip_date.delete(0, tk.END)
         else:
@@ -113,8 +119,11 @@ class TiliTripApp:
         self.list_plan.delete(0, tk.END)
         selected = self.tree.selection()
         if not selected: return
-
         trip_id = self.tree.item(selected[0])['values'][0]
+        self.cursor.execute("SELECT departure_city FROM trips WHERE id = ?", (trip_id,))
+        departure = self.cursor.fetchone()
+        if departure and departure[0]:
+        self.list_plan.insert(tk.END, f"Отправление из {departure[0]}")
         self.cursor.execute("SELECT city, day_number FROM locations WHERE trip_id=? ORDER BY day_number", (trip_id,))
         for city, day in self.cursor.fetchall():
             self.list_plan.insert(tk.END, f"День {day}: {city}")
