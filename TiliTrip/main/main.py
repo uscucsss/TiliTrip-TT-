@@ -29,6 +29,7 @@ COLORS = {
 
 STATUS_OPTIONS = ["Планируется", "В процессе", "Завершено"]
 
+
 class TiliTripApp(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -39,7 +40,8 @@ class TiliTripApp(ctk.CTk):
         try:
             pygame.mixer.init()
             self.play_sound("start.mp3")
-        except: pass
+        except:
+            pass
 
         self.init_db()
         self.setup_styles()
@@ -50,7 +52,8 @@ class TiliTripApp(ctk.CTk):
         self.conn = sqlite3.connect('tilitrip.db', check_same_thread=False)
         self.cursor = self.conn.cursor()
         self.cursor.execute("PRAGMA foreign_keys = ON")
-        self.cursor.execute('CREATE TABLE IF NOT EXISTS trips (id INTEGER PRIMARY KEY, name TEXT, start_date TEXT, departure_city TEXT, status TEXT)')
+        self.cursor.execute(
+            'CREATE TABLE IF NOT EXISTS trips (id INTEGER PRIMARY KEY, name TEXT, start_date TEXT, departure_city TEXT, status TEXT)')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS locations 
             (id INTEGER PRIMARY KEY, trip_id INTEGER, city TEXT, day_number INTEGER, 
              is_done INTEGER DEFAULT 0, lat TEXT, lon TEXT, 
@@ -60,12 +63,15 @@ class TiliTripApp(ctk.CTk):
     def setup_styles(self):
         style = ttk.Style()
         style.theme_use("clam")
-        style.configure("Treeview", background=COLORS["card"], foreground="#333333", rowheight=40, fieldbackground=COLORS["card"], borderwidth=0, font=("Segoe UI", 11))
-        style.configure("Treeview.Heading", background=COLORS["header_blue"], foreground=COLORS["header_text"], relief="flat", padding=10, font=("Segoe UI", 11, "bold"))
+        style.configure("Treeview", background=COLORS["card"], foreground="#333333", rowheight=40,
+                        fieldbackground=COLORS["card"], borderwidth=0, font=("Segoe UI", 11))
+        style.configure("Treeview.Heading", background=COLORS["header_blue"], foreground=COLORS["header_text"],
+                        relief="flat", padding=10, font=("Segoe UI", 11, "bold"))
         style.map("Treeview", background=[('selected', COLORS["accent"])], foreground=[('selected', "white")])
 
     def create_widgets(self):
-        self.header_label = ctk.CTkLabel(self, text="TiliTrip", font=("Segoe UI", 48, "bold"), text_color=COLORS["accent"])
+        self.header_label = ctk.CTkLabel(self, text="TiliTrip", font=("Segoe UI", 48, "bold"),
+                                         text_color=COLORS["accent"])
         self.header_label.pack(pady=(10, 5))
 
         self.scroll_canvas = ctk.CTkScrollableFrame(self, fg_color="transparent")
@@ -88,7 +94,8 @@ class TiliTripApp(ctk.CTk):
         # Полноценный календарь
         self.calendar_label = ctk.CTkLabel(self.frame_add, text="Дата:", text_color="#333")
         self.calendar_label.grid(row=0, column=2, padx=(10, 2))
-        self.date_picker = DateEntry(self.frame_add, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd.mm.yyyy')
+        self.date_picker = DateEntry(self.frame_add, width=12, background='darkblue', foreground='white', borderwidth=2,
+                                     date_pattern='dd.mm.yyyy')
         self.date_picker.grid(row=0, column=3, padx=5, pady=25)
 
         self.status_menu = ctk.CTkOptionMenu(self.frame_add, values=STATUS_OPTIONS, width=140)
@@ -100,13 +107,17 @@ class TiliTripApp(ctk.CTk):
         # Кнопки Маршрута и Карты (Перенесены наверх)
         self.top_btn_frame = ctk.CTkFrame(self.scroll_canvas, fg_color="transparent")
         self.top_btn_frame.pack(fill="x", padx=20, pady=5)
-        ctk.CTkButton(self.top_btn_frame, text="📍 РАССЧИТАТЬ ПУТЬ", fg_color="#4CAF50", hover_color="#45a049", command=self.calculate_route).pack(side="left", padx=5)
-        ctk.CTkButton(self.top_btn_frame, text="🗺️ КАРТА МАРШРУТА", fg_color="#FF9800", hover_color="#F57C00", command=self.open_map_action).pack(side="left", padx=5)
-        self.result_label = ctk.CTkLabel(self.top_btn_frame, text="", font=("Segoe UI", 14, "bold"), text_color=COLORS["accent"])
+        ctk.CTkButton(self.top_btn_frame, text="📍 РАССЧИТАТЬ ПУТЬ", fg_color="#4CAF50", hover_color="#45a049",
+                      command=self.calculate_route).pack(side="left", padx=5)
+        ctk.CTkButton(self.top_btn_frame, text="🗺️ КАРТА МАРШРУТА", fg_color="#FF9800", hover_color="#F57C00",
+                      command=self.open_map_action).pack(side="left", padx=5)
+        self.result_label = ctk.CTkLabel(self.top_btn_frame, text="", font=("Segoe UI", 14, "bold"),
+                                         text_color=COLORS["accent"])
         self.result_label.pack(side="left", padx=20)
 
         # Таблица поездок
-        self.tree = ttk.Treeview(self.scroll_canvas, columns=("ID", "Название", "Дата", "Вылет", "Статус"), show="headings", height=6)
+        self.tree = ttk.Treeview(self.scroll_canvas, columns=("ID", "Название", "Дата", "Вылет", "Статус"),
+                                 show="headings", height=6)
         for col in ("ID", "Название", "Дата", "Вылет", "Статус"):
             self.tree.heading(col, text=col)
             self.tree.column(col, anchor="center", width=140)
@@ -117,7 +128,8 @@ class TiliTripApp(ctk.CTk):
         # Управление поездкой
         self.trip_manage_frame = ctk.CTkFrame(self.scroll_canvas, fg_color="transparent")
         self.trip_manage_frame.pack(fill="x", padx=20)
-        ctk.CTkButton(self.trip_manage_frame, text="УДАЛИТЬ ПОЕЗДКУ", fg_color=COLORS["danger"], command=self.delete_trip).pack(side="right", padx=5)
+        ctk.CTkButton(self.trip_manage_frame, text="УДАЛИТЬ ПОЕЗДКУ", fg_color=COLORS["danger"],
+                      command=self.delete_trip).pack(side="right", padx=5)
 
         # Блок Плана
         ctk.CTkFrame(self.scroll_canvas, height=2, fg_color=COLORS["accent"]).pack(fill="x", pady=20, padx=20)
@@ -130,17 +142,25 @@ class TiliTripApp(ctk.CTk):
         ctk.CTkButton(self.frame_loc_add, text="+ В ПЛАН", command=self.add_location).grid(row=0, column=2, padx=10)
 
         # Таблица плана
-        self.plan_view = ttk.Treeview(self.scroll_canvas, columns=("LocID", "Status", "Day", "City"), show="headings", height=8)
-        self.plan_view.heading("Day", text="День"); self.plan_view.heading("City", text="Место назначения"); self.plan_view.heading("Status", text="Статус")
-        self.plan_view.column("LocID", width=0, stretch=False); self.plan_view.column("Status", width=100); self.plan_view.column("Day", width=80)
+        self.plan_view = ttk.Treeview(self.scroll_canvas, columns=("LocID", "Status", "Day", "City"), show="headings",
+                                      height=8)
+        self.plan_view.heading("Day", text="День");
+        self.plan_view.heading("City", text="Место назначения");
+        self.plan_view.heading("Status", text="Статус")
+        self.plan_view.column("LocID", width=0, stretch=False);
+        self.plan_view.column("Status", width=100);
+        self.plan_view.column("Day", width=80)
         self.plan_view.pack(fill="x", padx=20, pady=10)
         self.plan_view.bind("<Double-1>", lambda e: self.toggle_location_done())
 
         # Кнопки Плана
         self.plan_ctrl_frame = ctk.CTkFrame(self.scroll_canvas, fg_color="transparent")
         self.plan_ctrl_frame.pack(fill="x", padx=20, pady=(0, 20))
-        ctk.CTkButton(self.plan_ctrl_frame, text="УДАЛИТЬ ПУНКТ", fg_color=COLORS["danger"], command=self.delete_location).pack(side="left", padx=5)
-        ctk.CTkButton(self.plan_ctrl_frame, text="ОЧИСТИТЬ ВЕСЬ ПЛАН", fg_color="transparent", border_width=1, border_color=COLORS["danger"], text_color=COLORS["danger"], command=self.clear_entire_plan).pack(side="right")
+        ctk.CTkButton(self.plan_ctrl_frame, text="УДАЛИТЬ ПУНКТ", fg_color=COLORS["danger"],
+                      command=self.delete_location).pack(side="left", padx=5)
+        ctk.CTkButton(self.plan_ctrl_frame, text="ОЧИСТИТЬ ВЕСЬ ПЛАН", fg_color="transparent", border_width=1,
+                      border_color=COLORS["danger"], text_color=COLORS["danger"], command=self.clear_entire_plan).pack(
+            side="right")
 
     # --- ЛОГИКА ГЕО И МАРШРУТОВ ---
 
@@ -151,7 +171,9 @@ class TiliTripApp(ctk.CTk):
             if res and res[0]: return res[0], res[1]
 
         try:
+
             url = f"https://nominatim.openstreetmap.org{urllib.parse.quote(city.strip())}&format=json&limit=1"
+
             headers = {'User-Agent': 'TiliTripApp/2.0'}
             data = requests.get(url, headers=headers, timeout=10).json()
             if data:
@@ -159,9 +181,10 @@ class TiliTripApp(ctk.CTk):
                 if loc_id:
                     self.cursor.execute("UPDATE locations SET lat=?, lon=? WHERE id=?", (lat, lon, loc_id))
                     self.conn.commit()
-                time.sleep(1) # Nominatim limit
+                time.sleep(1)  # Nominatim limit
                 return lat, lon
-        except: pass
+        except:
+            pass
         return None, None
 
     def calculate_route(self):
@@ -176,33 +199,39 @@ class TiliTripApp(ctk.CTk):
             trip_id, _, _, dep_city, _ = trip_data
             self.cursor.execute("SELECT id, city FROM locations WHERE trip_id=? ORDER BY day_number", (trip_id,))
             locs = self.cursor.fetchall()
-            
+
             # Собираем все точки (Вылет + План)
             full_route = []
             # Координаты вылета
             lat_start, lon_start = self.get_coords(dep_city)
-            if lat_start: full_route.append(f"{lat_start},{lon_start}")
-            else: return self.after(0, lambda: messagebox.showerror("Ошибка", f"Не найден город вылета: {dep_city}"))
+            if lat_start:
+                full_route.append(f"{lat_start},{lon_start}")
+            else:
+                return self.after(0, lambda: messagebox.showerror("Ошибка", f"Не найден город вылета: {dep_city}"))
 
             for l_id, l_city in locs:
                 lat, lon = self.get_coords(l_city, l_id)
-                if lat: full_route.append(f"{lat},{lon}")
-                else: return self.after(0, lambda: messagebox.showerror("Ошибка", f"Не найден город: {l_city}"))
+                if lat:
+                    full_route.append(f"{lat},{lon}")
+                else:
+                    return self.after(0, lambda: messagebox.showerror("Ошибка", f"Не найден город: {l_city}"))
 
-            if len(full_route) < 2: return self.after(0, lambda: self.result_label.configure(text="Добавьте города в план"))
+            if len(full_route) < 2: return self.after(0, lambda: self.result_label.configure(
+                text="Добавьте города в план"))
 
             dist, dur = 0, 0
             api_key = "e0db81e2-ded2-4ba9-9f0f-dc8eb9fac721"
-            for i in range(len(full_route)-1):
+            for i in range(len(full_route) - 1):
                 url = "https://graphhopper.com"
-                p = [('point', full_route[i]), ('point', full_route[i+1]), ('profile', 'car'), ('key', api_key)]
+                p = [('point', full_route[i]), ('point', full_route[i + 1]), ('profile', 'car'), ('key', api_key)]
                 r = requests.get(url, params=p).json()
                 if 'paths' in r:
                     dist += r['paths'][0]['distance']
                     dur += r['paths'][0]['time']
-                else: raise Exception("Ошибка API GraphHopper")
+                else:
+                    raise Exception("Ошибка API GraphHopper")
 
-            res = f"🏁 {dist/1000:.1f} км | {int(dur/1000/3600)}ч {int((dur/1000%3600)/60)}м"
+            res = f"🏁 {dist / 1000:.1f} км | {int(dur / 1000 / 3600)}ч {int((dur / 1000 % 3600) / 60)}м"
             self.after(0, lambda: self.result_label.configure(text=res))
             self.after(0, lambda: self.play_sound("success.mp3"))
         except Exception as e:
@@ -218,12 +247,12 @@ class TiliTripApp(ctk.CTk):
         pts = []
         lat0, lon0 = self.get_coords(dep_city)
         if lat0: pts.append(f"point={lat0}%2C{lon0}")
-        
+
         self.cursor.execute("SELECT id, city FROM locations WHERE trip_id=? ORDER BY day_number", (trip_id,))
         for lid, city in self.cursor.fetchall():
             lat, lon = self.get_coords(city, lid)
             if lat: pts.append(f"point={lat}%2C{lon}")
-        
+
         if pts: webbrowser.open(f"https://graphhopper.com?{'&'.join(pts)}&profile=car&locale=ru")
 
     # --- УПРАВЛЕНИЕ ДАННЫМИ ---
@@ -238,21 +267,28 @@ class TiliTripApp(ctk.CTk):
 
     def update_trip_list(self, query=""):
         for i in self.tree.get_children(): self.tree.delete(i)
-        sql = "SELECT * FROM trips WHERE name LIKE ?" if query else "SELECT * * FROM trips"
-        self.cursor.execute(sql, (f'%{query}%',) if query else ())
+        if query:
+            self.cursor.execute("SELECT * FROM trips WHERE name LIKE ?", (f'%{query}%',))
+        else:
+            self.cursor.execute("SELECT * FROM trips")
+
         for row in self.cursor.fetchall():
-            tag = 'trip_done' if row[4] == "Завершено" else 'trip_process' if row[4] == "В процессе" else ''
-            self.tree.insert("", "end", values=row, tags=(tag,))
+            # ... ваш код с тегами ...
+            self.tree.insert("", "end", values=row)
 
     def on_trip_select(self):
         sel = self.tree.selection()
-        if sel: self.update_plan_view(self.tree.item(sel)['values'][0])
+        if sel:
+            trip_id = self.tree.item(sel)['values'][0]
+            self.update_plan_view(trip_id)
 
     def update_plan_view(self, trip_id):
         for i in self.plan_view.get_children(): self.plan_view.delete(i)
-        self.cursor.execute("SELECT id, is_done, day_number, city FROM locations WHERE trip_id=? ORDER BY day_number", (trip_id,))
+        self.cursor.execute("SELECT id, is_done, day_number, city FROM locations WHERE trip_id=? ORDER BY day_number",
+                            (trip_id,))
         for r in self.cursor.fetchall():
-            self.plan_view.insert("", "end", values=(r[0], "✅" if r[1] else "⏳", r[2], r[3]), tags=('item_done' if r[1] else ''))
+            self.plan_view.insert("", "end", values=(r[0], "✅" if r[1] else "⏳", r[2], r[3]),
+                                  tags=('item_done' if r[1] else ''))
 
     def add_location(self):
         sel = self.tree.selection()
@@ -273,25 +309,32 @@ class TiliTripApp(ctk.CTk):
     def toggle_location_done(self):
         sel = self.plan_view.selection()
         if sel:
-            self.cursor.execute("UPDATE locations SET is_done = NOT is_done WHERE id=?", (self.plan_view.item(sel)['values'][0],))
-            self.conn.commit(); self.on_trip_select()
+            self.cursor.execute("UPDATE locations SET is_done = NOT is_done WHERE id=?",
+                                (self.plan_view.item(sel)['values'][0],))
+            self.conn.commit();
+            self.on_trip_select()
 
     def delete_trip(self):
         sel = self.tree.selection()
         if sel and messagebox.askyesno("Удаление", "Удалить поездку?"):
             self.cursor.execute("DELETE FROM trips WHERE id=?", (self.tree.item(sel)['values'][0],))
-            self.conn.commit(); self.update_trip_list()
+            self.conn.commit();
+            self.update_trip_list()
 
     def clear_entire_plan(self):
         sel = self.tree.selection()
         if sel:
             self.cursor.execute("DELETE FROM locations WHERE trip_id=?", (self.tree.item(sel)['values'][0],))
-            self.conn.commit(); self.on_trip_select()
+            self.conn.commit();
+            self.on_trip_select()
 
     def play_sound(self, file):
         try:
             if os.path.exists(file): pygame.mixer.Sound(file).play()
-        except: pass
+        except:
+            pass
+
 
 if __name__ == "__main__":
-    app = TiliTripApp(); app.mainloop()
+    app = TiliTripApp();
+    app.mainloop()
